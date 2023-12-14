@@ -1,6 +1,12 @@
+from __future__ import annotations
+
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, status, Path
+from fastapi import APIRouter, Depends, HTTPException, status, Path
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
+
+from models import Tasks
+from database import get_db
 
 router = APIRouter()
 
@@ -52,8 +58,8 @@ TASKS = [
 
 
 @router.get("")
-async def get_all_tasks():
-    return TASKS
+async def get_all_tasks(db: Session = Depends(get_db)):
+    return db.query(Tasks).all()
 
 
 @router.post("")
@@ -86,8 +92,8 @@ async def update_task_by_id(task_id: int, task_data: Task):
         return {"msg": f"Task not found with id#{task_id}"}
 
 
-@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_task_by_id(task_id: int = Path(gt=0)):
+@router.delete("/{task_id}")
+async def delete_task_by_id(task_id: int):
     task_deleted = False
     for index in range(len(TASKS)):
         if task_id == TASKS[index].id:
