@@ -5,9 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, status, Path
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from models import Violations
-from database import get_db
 from auth import get_current_user
+from database import get_db
+from models import Violations
 
 router = APIRouter()
 
@@ -33,11 +33,12 @@ class Violation(BaseModel):
 
 @router.get("", status_code=status.HTTP_200_OK)
 async def get_all_violations(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    return db.query(Violations).filter(Violations.id == current_user.get("id")).all()
+    return db.query(Violations).first().filter(Violations.id == current_user.get("id")).all()
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-async def create_violation(violation_data: Violation, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+async def create_violation(violation_data: Violation, db: Session = Depends(get_db),
+                           current_user: dict = Depends(get_current_user)):
     new_violation = Violations(**violation_data.model_dump(), author=current_user.get("id"))
 
     db.add(new_violation)
@@ -45,18 +46,22 @@ async def create_violation(violation_data: Violation, db: Session = Depends(get_
 
 
 @router.get("/{violation_id}", status_code=status.HTTP_200_OK)
-async def get_violation_by_id(violation_id: int = Path(gt=0), db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    Violation = db.query(Violations).filter(Violations.id == violation_id).first().filter(Violations.name == current_user.get("id"))
-    if Violation is not None:
-        return Violation
+async def get_violation_by_id(violation_id: int = Path(gt=0), db: Session = Depends(get_db),
+                              current_user: dict = Depends(get_current_user)):
+    violation = db.query(Violations).filter(Violations.id == violation_id).first().filter(
+        Violations.name == current_user.get("id"))
+    if violation is not None:
+        return violation
     raise HTTPException(status_code=404, detail=f"Violation with id #{violation_id} was not found")
 
 
 @router.put("/{violation_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def update_violation_by_id(violation_data: Violation, violation_id: int = Path(gt=0), db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    Violation = db.query(Violations).filter(Violations.id == violation_id).filter(Violations.name == current_user.get("id"))
+async def update_violation_by_id(violation_data: Violation, violation_id: int = Path(gt=0),
+                                 db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    violation = db.query(Violations).filter(Violations.id == violation_id).first().filter(
+        Violations.name == current_user.get("id"))
 
-    if Violation is None:
+    if violation is None:
         raise HTTPException(status_code=404, detail=f"Violation with id #{violation_id} was not found")
 
     Violation.title = violation_data.title
@@ -70,8 +75,10 @@ async def update_violation_by_id(violation_data: Violation, violation_id: int = 
 
 
 @router.delete("/{violation_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_violation_by_id(violation_id: int = Path(gt=0), db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    delete_violation = db.query(Violations).filter(Violations.id == violation_id).filter(Violations.name == current_user.get("id"))
+async def delete_violation_by_id(violation_id: int = Path(gt=0), db: Session = Depends(get_db),
+                                 current_user: dict = Depends(get_current_user)):
+    delete_violation = db.query(Violations).filter(Violations.id == violation_id).first().filter(
+        Violations.name == current_user.get("id"))
 
     if delete_violation is None:
         raise HTTPException(status_code=404, detail=f"Violation with id #{violation_id} was not found")

@@ -27,6 +27,7 @@ class Tasks(Base):
     complete = Column(Boolean, default=False)
     created_on = Column(DateTime, default=datetime.now(timezone.utc))
 
+
 class Violations(Base):
     __tablename__ = "Cps"
 
@@ -37,4 +38,3 @@ class Violations(Base):
     behaviour_point_deduction = Column(Integer)
     pink_slip = Column(Boolean, default=False)
     issued_in = Column(DateTime, default=datetime.now(timezone.utc))
-

@@ -26,9 +26,6 @@ class UserDBOut(BaseModel):
     alt_name: str
     email: str
 
-class TaskCreate(BaseModel):
-    name: str
-    description: str
 
 class UserCreate(BaseModel):
     name: str
@@ -63,8 +60,8 @@ def authenticate_user(email: str, password: str, db: Session):
     return user
 
 
-def create_access_token(email: str, user_id: int, expires_delta: timedelta):
-    encode = {"sub": email, "id": user_id}
+def create_access_token(email: str, user_id: int, role: str, expires_delta: timedelta):
+    encode = {"sub": email, "id": user_id, "role": role}
     expires = datetime.now(timezone.utc) + expires_delta
     encode.update({"exp": expires})
     return jwt.encode(encode, JSON_SECRET, algorithm=JSON_ALG)
@@ -75,9 +72,10 @@ async def get_current_user(token: str = Depends(oauth2_bearer)):
         payload = jwt.decode(token, JSON_SECRET, algorithms=[JSON_ALG])
         user_email: str = payload.get("sub")
         user_id: int = payload.get("id")
+        user_role: str = payload.get("role")
         if user_email is None or user_id is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Couldn't validate credentials")
-        return {"email": user_email, "id": user_id}
+        return {"email": user_email, "id": user_id, "role": user_role}
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Couldn't validate credentials")
 
@@ -114,6 +112,5 @@ async def get_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
 
-    token = create_access_token(user.email, user.id, timedelta(minutes=90))
+    token = create_access_token(user.email, user.id, user.role, timedelta(minutes=90))
     return {"access_token": token, "token_type": "bearer"}
-
