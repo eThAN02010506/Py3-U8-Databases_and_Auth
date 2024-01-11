@@ -26,6 +26,9 @@ class UserDBOut(BaseModel):
     alt_name: str
     email: str
 
+class TaskCreate(BaseModel):
+    name: str
+    description: str
 
 class UserCreate(BaseModel):
     name: str
@@ -113,3 +116,4 @@ async def get_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
 
     token = create_access_token(user.email, user.id, timedelta(minutes=90))
     return {"access_token": token, "token_type": "bearer"}
+

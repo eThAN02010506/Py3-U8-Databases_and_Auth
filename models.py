@@ -26,3 +26,15 @@ class Tasks(Base):
     priority = Column(Integer)
     complete = Column(Boolean, default=False)
     created_on = Column(DateTime, default=datetime.now(timezone.utc))
+
+class Violations(Base):
+    __tablename__ = "Cps"
+
+    student_id = Column(Integer, primary_key=True, index=True)
+    title = Column(String)
+    issued_by = Column(Integer, ForeignKey("users.id"))
+    description = Column(String)
+    behaviour_point_deduction = Column(Integer)
+    pink_slip = Column(Boolean, default=False)
+    issued_in = Column(DateTime, default=datetime.now(timezone.utc))
+
