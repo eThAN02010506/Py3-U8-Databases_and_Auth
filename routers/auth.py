@@ -17,9 +17,10 @@ bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="token")
 
-JSON_SECRET = env.get("JSON_SECRET")
-JSON_ALG = env.get("JSON_ALG")
-
+#JSON_SECRET = env.get("JSON_SECRET")
+#JSON_ALG = env.get("JSON_ALG")
+JSON_SECRET = "12345678"
+JSON_ALG = "HS256"
 
 class UserDBOut(BaseModel):
     name: str
